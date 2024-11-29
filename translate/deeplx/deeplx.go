@@ -21,10 +21,9 @@ type DeepLX struct {
 
 func (dpl *DeepLX) Translate(q, source, target string) (result string, err error) {
 	if dpl.BaseURL == "" {
-		return "", translate.ErrInvalidConfiguration
+		return "", translate.ErrTranslator
 	}
 
-	// 如果源语言为空，设置为 auto
 	if source == "" {
 		source = "auto"
 	}
@@ -35,7 +34,6 @@ func (dpl *DeepLX) Translate(q, source, target string) (result string, err error
 		"target_lang": parseToDeeplSupportedLanguage(target),
 	}
 
-	// 准备请求选项
 	opts := []fetch.Option{
 		fetch.WithRaiseForStatus(true),
 		fetch.WithHeader("Content-Type", "application/json"),
@@ -44,7 +42,6 @@ func (dpl *DeepLX) Translate(q, source, target string) (result string, err error
 		fetch.WithHeader("Connection", "keep-alive"),
 	}
 
-	// 如果配置了 API Key，添加认证头
 	if dpl.APIKey != "" {
 		opts = append(opts,
 			fetch.WithHeader("Authorization", "DeepL-Auth-Key "+dpl.APIKey),
@@ -57,7 +54,6 @@ func (dpl *DeepLX) Translate(q, source, target string) (result string, err error
 	}
 	defer resp.Body.Close()
 
-	// 读取响应内容
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("failed to read response body: %v", err)
@@ -86,6 +82,8 @@ func parseToDeeplSupportedLanguage(lang string) string {
 	case "zh", "zh-hans", "zh-cn", "chs":
 		return "ZH"
 	case "zh-hant", "zh-tw", "cht":
+		return "ZH"
+	case "ZH", "CHS", "ZH-CN", "ZH-HANS", "CHT", "ZH-TW", "ZH-HK", "ZH-HANT":
 		return "ZH"
 	case "en":
 		return "EN"
