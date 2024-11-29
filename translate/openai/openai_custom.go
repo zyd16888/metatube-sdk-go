@@ -23,7 +23,7 @@ type OpenAIX struct {
 
 func (oa *OpenAIX) Translate(q, source, target string) (result string, err error) {
 	if oa.BaseURL == "" {
-		return "", translate.ErrInvalidConfiguration
+		return "", translate.ErrTranslator
 	}
 
 	// Prepare the chat message
@@ -46,7 +46,6 @@ Rules:
 		model = "gpt-3.5-turbo"
 	}
 
-	// 准备请求体
 	reqBody := map[string]interface{}{
 		"model": model,
 		"messages": []map[string]string{
@@ -63,14 +62,12 @@ Rules:
 		"max_tokens":  1000,
 	}
 
-	// 准备请求选项
 	opts := []fetch.Option{
 		fetch.WithRaiseForStatus(true),
 		fetch.WithHeader("Content-Type", "application/json"),
 		fetch.WithHeader("Accept", "application/json"),
 	}
 
-	// 如果配置了 API Key，添加认证头
 	if oa.APIKey != "" {
 		opts = append(opts,
 			fetch.WithHeader("Authorization", "Bearer "+oa.APIKey),
@@ -83,7 +80,6 @@ Rules:
 	}
 	defer resp.Body.Close()
 
-	// 读取响应内容
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("failed to read response body: %v", err)
