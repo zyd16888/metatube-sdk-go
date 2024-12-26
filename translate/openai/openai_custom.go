@@ -15,10 +15,11 @@ import (
 var _ translate.Translator = (*OpenAIX)(nil)
 
 type OpenAIX struct {
-	APIKey       string `json:"openai-api-key"`
-	BaseURL      string `json:"base-url"`
-	Model        string `json:"model"`
-	SystemPrompt string `json:"system-prompt"`
+	APIKey       string  `json:"openai-api-key"`
+	BaseURL      string  `json:"base-url"`
+	Model        string  `json:"model"`
+	SystemPrompt string  `json:"system-prompt"`
+	Temperature  float32 `json:"temperature"`
 }
 
 func (oa *OpenAIX) Translate(q, source, target string) (result string, err error) {
@@ -58,7 +59,7 @@ Rules:
 				"content": userPrompt,
 			},
 		},
-		"temperature": 0.3,
+		"temperature": oa.Temperature,
 		"max_tokens":  1000,
 	}
 

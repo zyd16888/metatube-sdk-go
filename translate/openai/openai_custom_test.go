@@ -15,9 +15,10 @@ func TestOpenAiXTranslate(t *testing.T) {
 	model := os.Getenv("OPENAI_X_MODEL")
 
 	translator := &OpenAIX{
-		APIKey:  apiKey,
-		BaseURL: baseURL,
-		Model:   model,
+		APIKey:      apiKey,
+		BaseURL:     baseURL,
+		Model:       model,
+		Temperature: 1.3,
 	}
 
 	for _, unit := range []struct {
