@@ -1,3 +1,4 @@
+// Deprecated: This provider is no longer supported.
 package airav
 
 import (
@@ -5,10 +6,13 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"regexp"
 	"strings"
 
 	"github.com/gocolly/colly/v2"
+	"golang.org/x/text/language"
 
+	"github.com/metatube-community/metatube-sdk-go/common/number"
 	"github.com/metatube-community/metatube-sdk-go/common/parser"
 	"github.com/metatube-community/metatube-sdk-go/model"
 	"github.com/metatube-community/metatube-sdk-go/provider"
@@ -38,13 +42,14 @@ type AirAV struct {
 }
 
 func New() *AirAV {
-	return &AirAV{
-		Scraper: scraper.NewDefaultScraper(Name, baseURL, Priority,
-			scraper.WithHeaders(map[string]string{
-				"Origin":  baseURL,
-				"Referer": baseURL,
-			})),
-	}
+	return &AirAV{scraper.NewDefaultScraper(
+		Name, baseURL, Priority,
+		language.Japanese,
+		scraper.WithHeaders(map[string]string{
+			"Origin":  baseURL,
+			"Referer": baseURL,
+		}),
+	)}
 }
 
 func (air *AirAV) NormalizeMovieID(id string) string { return strings.ToUpper(id) }
@@ -175,16 +180,13 @@ func (air *AirAV) GetMovieInfoByURL(rawURL string) (info *model.MovieInfo, err e
 }
 
 func (air *AirAV) NormalizeMovieKeyword(keyword string) string {
-	// Disable AIRAV due to its bad performance.
-	//
-	//if ss := regexp.MustCompile(`^(?i)FC2-.*?(\d+)$`).FindStringSubmatch(keyword); len(ss) == 2 {
-	//	return fmt.Sprintf("FC2-PPV-%s", ss[1])
-	//}
-	//if number.IsSpecial(keyword) {
-	//	return "" // Deprecate other searches if any.
-	//}
-	//return strings.ToUpper(keyword)
-	return ""
+	if ss := regexp.MustCompile(`^(?i)FC2-.*?(\d+)$`).FindStringSubmatch(keyword); len(ss) == 2 {
+		return fmt.Sprintf("FC2-PPV-%s", ss[1])
+	}
+	if number.IsSpecial(keyword) {
+		return "" // Deprecate other searches if any.
+	}
+	return strings.ToUpper(keyword)
 }
 
 func (air *AirAV) SearchMovie(keyword string) (results []*model.MovieSearchResult, err error) {

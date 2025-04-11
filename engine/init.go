@@ -3,17 +3,10 @@ package engine
 import (
 	"log"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/metatube-community/metatube-sdk-go/common/fetch"
 	mt "github.com/metatube-community/metatube-sdk-go/provider"
-)
-
-// Special environment prefixes for setting provider priorities.
-const (
-	ActorProviderPriorityEnvPrefix = "MT_ACTOR_PROVIDER_PRIORITY_"
-	MovieProviderPriorityEnvPrefix = "MT_MOVIE_PROVIDER_PRIORITY_"
 )
 
 func (e *Engine) init() *Engine {
@@ -34,29 +27,27 @@ func (e *Engine) initFetcher() {
 }
 
 func (e *Engine) initAllProviderPriorities() {
-	for _, env := range os.Environ() {
-		key, value, _ := strings.Cut(strings.ToUpper(env), "=")
-		switch {
-		case strings.HasPrefix(key, ActorProviderPriorityEnvPrefix):
-			name := key[len(ActorProviderPriorityEnvPrefix):]
-			prio, _ := strconv.ParseFloat(value, 64)
-			if prio == 0 {
-				delete(e.actorProviders, name)
-				continue
-			}
-			if provider, ok := e.actorProviders[name]; ok {
-				provider.SetPriority(prio)
-			}
-		case strings.HasPrefix(key, MovieProviderPriorityEnvPrefix):
-			name := key[len(MovieProviderPriorityEnvPrefix):]
-			prio, _ := strconv.ParseFloat(value, 64)
-			if prio == 0 {
-				delete(e.movieProviders, name)
-				continue
-			}
-			if provider, ok := e.movieProviders[name]; ok {
-				provider.SetPriority(prio)
-			}
+	defer func() {
+		// remove references.
+		e.actorPriorities = nil
+		e.moviePriorities = nil
+	}()
+	for name, prio := range e.actorPriorities {
+		if prio == 0 {
+			delete(e.actorProviders, name)
+			continue
+		}
+		if provider, ok := e.actorProviders[name]; ok {
+			provider.SetPriority(prio)
+		}
+	}
+	for name, prio := range e.moviePriorities {
+		if prio == 0 {
+			delete(e.movieProviders, name)
+			continue
+		}
+		if provider, ok := e.movieProviders[name]; ok {
+			provider.SetPriority(prio)
 		}
 	}
 }
